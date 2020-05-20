@@ -3,8 +3,6 @@ import 'dart:ui';
 
 import 'package:box2d_flame/box2d.dart';
 import 'package:flame/components/component.dart';
-import 'package:flame/position.dart';
-import 'package:tiled/tiled.dart';
 import 'package:xc_arcade/units.dart';
 
 class CourseCmp extends Component {
