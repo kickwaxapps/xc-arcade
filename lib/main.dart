@@ -57,10 +57,20 @@ class MyGame extends BaseGame with  /*PanDetector, */ScaleDetector {
       final geoMeta = tc.map.objectGroups.firstWhere((e) => e.name == 'geo');
       final bc = geoMeta.tmxObjects.firstWhere((e) => e.name == 'breadcrumbs');
       final ss = SpriteSheet(imageName: 'walker0.png', textureWidth:64,textureHeight: 64, columns:8, rows: 1);
+      final sss = [ SpriteSheet(imageName: 'walker1.png', textureWidth:64,textureHeight: 64, columns:8, rows: 1),
+    SpriteSheet(imageName: 'walker2.png', textureWidth:64,textureHeight: 64, columns:8, rows: 1),
+    SpriteSheet(imageName: 'walker3.png', textureWidth:64,textureHeight: 64, columns:8, rows: 1),
+    SpriteSheet(imageName: 'walker4.png', textureWidth:64,textureHeight: 64, columns:8, rows: 1),
+    SpriteSheet(imageName: 'walker5.png', textureWidth:64,textureHeight: 64, columns:8, rows: 1)
+    ];
+
+
       player = RacerCmp(ss, bc.points.map((p) => Vector2(bc.x.toDouble()+ p.x.toDouble(), bc.y.toDouble() + p.y.toDouble())*METERS).toList() , world);
       add(player);
+      player.width = 48;
+      player.height = 48;
 
-      for (int i = 1 ; i <=100; i ++) add(RacerCmp(ss, bc.points.map((p) => Vector2(bc.x.toDouble()+ p.x.toDouble()+2.0*i, bc.y.toDouble() + p.y.toDouble())*METERS).toList() , world));
+      for (int i = 1 ; i <=100; i ++) add(RacerCmp(sss[i % 5], bc.points.map((p) => Vector2(bc.x.toDouble()+ p.x.toDouble()+2.0*i, bc.y.toDouble() + p.y.toDouble())*METERS).toList() , world));
 
 
 

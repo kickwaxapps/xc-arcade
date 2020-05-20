@@ -88,6 +88,11 @@ flutter:
     - assets/images/IceTileset.png
     - assets/images/s0.png
     - assets/images/walker0.png
+    - assets/images/walker1.png
+    - assets/images/walker2.png
+    - assets/images/walker3.png
+    - assets/images/walker4.png
+    - assets/images/walker5.png
     - assets/tiles/track1.tmx
     - assets/tiles/track2.tmx
     - assets/tiles/winter.tsx

@@ -61,7 +61,7 @@ class RacerCmp extends PositionComponent {
 
      prepareCanvas(c);
      walkAnimation.getSprite().render(c,
-          width: 32, height: 32);
+          width: width, height: height);
     }
 
     @override
