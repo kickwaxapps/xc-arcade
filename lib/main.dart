@@ -1,117 +1,185 @@
+
+import 'dart:math';
+
+import 'package:flame/components/component.dart';
+import 'package:flame/components/tiled_component.dart';
+import 'package:flame/gestures.dart';
+import 'package:flame/palette.dart';
+import 'package:flame/position.dart' as flame_pos;
+import 'package:flame/sprite.dart';
+import 'package:flame/text_config.dart';
+import 'package:flutter/gestures.dart';
+import 'package:flame/flame.dart';
+import 'package:flame/game.dart';
+import 'package:flame/animation.dart' as flame_animation;
+import 'package:flame/components/animation_component.dart';
 import 'package:flutter/material.dart';
+import 'package:tiled/tiled.dart';
 
-void main() {
-  runApp(MyApp());
+import 'package:xc_arcade/flame-overrides/tdc.dart';
+
+import 'package:box2d_flame/box2d.dart';
+
+import 'game-components/course-cmp.dart';
+import 'game-components/npc-cmp.dart';
+import 'units.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final Size size = await Flame.util.initialDimensions();
+
+   final String content = await Flame.assets.readFile('tiles/winter.tsx');
+
+  final game = MyGame(TSMP(content));
+  runApp(game.widget);
+
+
 }
 
-class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
-        // This makes the visual density adapt to the platform that you run
-        // the app on. For desktop platforms, the controls will be smaller and
-        // closer together (more dense) than on mobile platforms.
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
-}
+class MyGame extends BaseGame with  /*PanDetector, */ScaleDetector {
+  Offset lastTouch = Offset.zero;
+  double scale = 1.0;
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  NPCCmp player;
+  MyTiledComponent tc;
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
+  World world;
 
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
+  double cameraRotation = 0;
+  double targetCameraRotation = 0;
 
-  final String title;
+  bool debugMode() => false;
+  MyGame(tsp) {
 
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
+    world  = World.withPool(Vector2.zero(), DefaultWorldPool(100, 10));
+    tc = MyTiledComponent('track2.tmx', tsp);
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+   ///world.debugDraw = CanvasDraw();
+    add(tc);
   }
 
   @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
-    );
+  void update(dt) {
+    if (player == null && tc.loaded()) {
+      final geoMeta = tc.map.objectGroups.firstWhere((e) => e.name == 'geo');
+      final bc = geoMeta.tmxObjects.firstWhere((e) => e.name == 'breadcrumbs');
+      player = NPCCmp(Sprite('s0.png'), bc.points.map((p) => Vector2(bc.x.toDouble()+ p.x.toDouble(), bc.y.toDouble() + p.y.toDouble())*METERS).toList() , world);
+      add(player);
+
+      for (int i = 1 ; i <=100; i ++) add(NPCCmp(Sprite('s0.png'), bc.points.map((p) => Vector2(bc.x.toDouble()+ p.x.toDouble()+2.0*i, bc.y.toDouble() + p.y.toDouble())*METERS).toList() , world));
+
+
+
+      add(CourseCmp(geoMeta, world));
+    }
+
+    if (player != null) {
+      camera.x = player.x ;
+      camera.y = player.y;
+
+      final double b = (player.heading == null) ? 0 : player.heading.angleToSigned(Vector2(0, -1));
+      targetCameraRotation = b;
+    }
+
+    world.stepDt(dt, 10,10);
+  ///world.clearForces();
+    super.update(dt);
+
+
+    final baseDiff = targetCameraRotation - cameraRotation,
+      diff360 = 360 * DEGREES - baseDiff,
+      diff = (baseDiff.abs() < diff360.abs() ) ?  baseDiff : diff360;
+
+    final dir = diff.sign;
+    final mag = diff.abs();
+    double step = 0;
+    if  (mag > 45*DEGREES) {
+      step = .1;
+    } else if (mag > 20*DEGREES) {
+      step = 0.05;
+    }
+    else if (mag > 10*DEGREES) {
+      step = 0.025;
+    }
+    else if (mag > 2*DEGREES) {
+      step = 0.00125;
+    }
+    else {
+      step = 0;
+      //dcameraRotation = targetCameraRotation;
+    }
+
+    cameraRotation = cameraRotation + dir * step/5;
+
+  }
+
+  final xxx = const TextConfig(color: const Color(0xFF0000FF));
+
+    @override
+  void render(Canvas canvas) {
+      canvas.save();
+      if (player!=null) {
+        canvas.translate(size.width / 2, size.height / 2);
+        canvas.rotate(cameraRotation);
+        canvas.translate(-size.width / 2, -size.height / 2);
+      }
+
+     canvas.save();
+      components.forEach((comp) => renderComponent(canvas, comp));
+      canvas.restore();
+
+  }
+
+  /// This renders a single component obeying BaseGame rules.
+  ///
+  /// It translates the camera unless hud, call the render method and restore the canvas.
+  /// This makes sure the canvas is not messed up by one component and all components render independently.
+  void renderComponent(Canvas canvas, Component c) {
+    if (!c.loaded()) {
+      return;
+    }
+    if (!c.isHud()) {
+      if ( player!=null) {
+        final px = -player.x - 16;
+        final py = -player.y - 16;
+        final x = px + size.width / 2;
+        final y = py + size.height / 2;
+        canvas.translate(x, y);
+      }
+
+    }
+
+    c.render(canvas);
+    canvas.restore();
+    canvas.save();
+  }
+
+
+
+  @override
+  void onTapDown(TapDownDetails details) {
+    //player.onTap();
+  }
+
+
+
+  @override
+  void onScaleStart(ScaleStartDetails details) {
+    lastTouch = details.focalPoint;
+    print(details);
+  }
+  @override
+  void onScaleUpdate(ScaleUpdateDetails details) {
+    if (details.scale == 1.0) {
+    /*  Offset dir = details.focalPoint - lastTouch;
+      final travelX = dir.dx.sign;
+      final travelY = dir.dy.sign;
+      camera += flame_pos.Position(5* travelX ,5 * travelY );
+      lastTouch = details.focalPoint;*/
+    }
+    else {
+      print("Scale: ${details.scale}");
+      scale = details.scale;
+    }
   }
 }

@@ -24,10 +24,18 @@ dependencies:
   flutter:
     sdk: flutter
 
+  flame: ^0.20.2
+  tiled:
+    path: ../../tiled.dart/
+
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.3
+
+dependency_overrides:
+  tiled:
+    path: ../../tiled.dart/
 
 dev_dependencies:
   flutter_test:
@@ -74,3 +82,12 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+  assets:
+    - assets/images/classic-skier-anim.json
+    - assets/images/classic-skier-anim.png
+    - assets/images/IceTileset.png
+    - assets/images/s0.png
+    - assets/images/walker0.png
+    - assets/tiles/track1.tmx
+    - assets/tiles/track2.tmx
+    - assets/tiles/winter.tsx
