@@ -4,7 +4,6 @@ import 'package:xc_arcade/units.dart';
 import '../../racer.dart';
 import 'controller.dart';
 
-
 class NpcController {
   NpcController(this.breadCrumbs, this.racer);
 

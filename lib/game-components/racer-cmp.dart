@@ -10,35 +10,29 @@ import 'package:flutter/cupertino.dart';
 import '../racer.dart';
 import 'controllers/npc-ctrl.dart';
 
-
-
 class RacerCmp extends PositionComponent {
   flame_anim.Animation walkAnimation;
   final world;
   Racer racer;
   final List<Vector2> breadCrumbs;
   NpcController controller;
+
   Vector2 get heading => racer.forwardNormal;
 
-
-  RacerCmp(SpriteSheet spriteSheet, breadCrumbs_, this.world) :
-      breadCrumbs = pointCleaner(breadCrumbs_, 5 )
-  {
-
+  RacerCmp(SpriteSheet spriteSheet, breadCrumbs_, this.world) : breadCrumbs = pointCleaner(breadCrumbs_, 5) {
     walkAnimation = spriteSheet.createAnimation(0, stepTime: .05);
 
     final startPos = breadCrumbs.first;
     width = 32;
     height = 32;
     x = startPos.x.toDouble();
-    y = startPos.y.toDouble() ;
+    y = startPos.y.toDouble();
     anchor = Anchor.center;
 
     racer = Racer(world);
     controller = NpcController(breadCrumbs, racer);
     racer.controller = controller;
     racer.setPositionAndRotation(startPos.x, startPos.y, 0);
-
   }
 
   @override
@@ -56,34 +50,30 @@ class RacerCmp extends PositionComponent {
     walkAnimation.update(dt);
   }
 
-    @override
+  @override
   void render(Canvas c) {
+    prepareCanvas(c);
+    walkAnimation.getSprite().render(c, width: width, height: height);
+  }
 
-     prepareCanvas(c);
-     walkAnimation.getSprite().render(c,
-          width: width, height: height);
-    }
-
-    @override
-    bool loaded() {
-      return walkAnimation.loaded()  && x != null && y != null;
-    }
+  @override
+  bool loaded() {
+    return walkAnimation.loaded() && x != null && y != null;
+  }
 }
 
 List<Vector2> pointCleaner(List<Vector2> points, double minThreshold) {
-
   final List<Vector2> result = List();
 
   points.forEach((p) {
-    if(result.length == 0) {
+    if (result.length == 0) {
       result.add(p);
     } else {
-      if (p.distanceTo(result.last) > minThreshold ) {
+      if (p.distanceTo(result.last) > minThreshold) {
         result.add(p);
       }
     }
   });
 
   return result;
-
 }

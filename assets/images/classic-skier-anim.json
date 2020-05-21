@@ -1,122 +1,291 @@
-{"frames": {
-
-"f00.gif":
 {
-	"frame": {"x":0,"y":0,"w":198,"h":125},
-"duration" : 250,
-	"rotated": false,
-	"trimmed": false,
-	"spriteSourceSize": {"x":0,"y":0,"w":198,"h":125},
-	"sourceSize": {"w":198,"h":125},
-	"pivot": {"x":0.5,"y":0.5}
-},
-"f01.gif":
-{
-	"frame": {"x":0,"y":125,"w":198,"h":125},
-"duration" : 250,
-	"rotated": false,
-	"trimmed": false,
-	"spriteSourceSize": {"x":0,"y":0,"w":198,"h":125},
-	"sourceSize": {"w":198,"h":125},
-	"pivot": {"x":0.5,"y":0.5}
-},
-"f02.gif":
-{
-	"frame": {"x":0,"y":250,"w":198,"h":125},
-"duration" : 250,
-	"rotated": false,
-	"trimmed": false,
-	"spriteSourceSize": {"x":0,"y":0,"w":198,"h":125},
-	"sourceSize": {"w":198,"h":125},
-	"pivot": {"x":0.5,"y":0.5}
-},
-"f03.gif":
-{
-	"frame": {"x":0,"y":375,"w":198,"h":125},
-"duration" : 250,
-	"rotated": false,
-	"trimmed": false,
-	"spriteSourceSize": {"x":0,"y":0,"w":198,"h":125},
-	"sourceSize": {"w":198,"h":125},
-	"pivot": {"x":0.5,"y":0.5}
-},
-"f04.gif":
-{
-	"frame": {"x":0,"y":500,"w":198,"h":125},
-"duration" : 250,
-	"rotated": false,
-	"trimmed": false,
-	"spriteSourceSize": {"x":0,"y":0,"w":198,"h":125},
-	"sourceSize": {"w":198,"h":125},
-	"pivot": {"x":0.5,"y":0.5}
-},
-"f05.gif":
-{
-	"frame": {"x":0,"y":625,"w":198,"h":125},
-"duration" : 250,
-	"rotated": false,
-	"trimmed": false,
-	"spriteSourceSize": {"x":0,"y":0,"w":198,"h":125},
-	"sourceSize": {"w":198,"h":125},
-	"pivot": {"x":0.5,"y":0.5}
-},
-"f06.gif":
-{
-	"frame": {"x":0,"y":750,"w":198,"h":125},
-"duration" : 250,
-	"rotated": false,
-	"trimmed": false,
-	"spriteSourceSize": {"x":0,"y":0,"w":198,"h":125},
-	"sourceSize": {"w":198,"h":125},
-	"pivot": {"x":0.5,"y":0.5}
-},
-"f07.gif":
-{
-	"frame": {"x":0,"y":875,"w":198,"h":125},
-"duration" : 250,
-	"rotated": false,
-	"trimmed": false,
-	"spriteSourceSize": {"x":0,"y":0,"w":198,"h":125},
-	"sourceSize": {"w":198,"h":125},
-	"pivot": {"x":0.5,"y":0.5}
-},
-"f08.gif":
-{
-	"frame": {"x":0,"y":1000,"w":198,"h":125},
-"duration" : 250,
-	"rotated": false,
-	"trimmed": false,
-	"spriteSourceSize": {"x":0,"y":0,"w":198,"h":125},
-	"sourceSize": {"w":198,"h":125},
-	"pivot": {"x":0.5,"y":0.5}
-},
-"f09.gif":
-{
-	"frame": {"x":0,"y":1125,"w":198,"h":125},
-"duration" : 250,
-	"rotated": false,
-	"trimmed": false,
-	"spriteSourceSize": {"x":0,"y":0,"w":198,"h":125},
-	"sourceSize": {"w":198,"h":125},
-	"pivot": {"x":0.5,"y":0.5}
-},
-"f10.gif":
-{
-	"frame": {"x":0,"y":1250,"w":198,"h":125},
-"duration" : 250,
-	"rotated": false,
-	"trimmed": false,
-	"spriteSourceSize": {"x":0,"y":0,"w":198,"h":125},
-	"sourceSize": {"w":198,"h":125},
-	"pivot": {"x":0.5,"y":0.5}
-}},
-"meta": {
-	"app": "https://www.codeandweb.com/texturepacker",
-	"version": "1.0",
-	"image": "classic-skier-anim.png",
-	"format": "RGBA8888",
-	"size": {"w":198,"h":1375},
-	"scale": "1",
-	"smartupdate": "$TexturePacker:SmartUpdate:bf9c13509ddef998cc246d782a9698c9:912af71103eaa8b1a24954f6eb61589a:8864e14f265992ac71ae279c97209c28$"
-}
+  "frames": {
+    "f00.gif": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 198,
+        "h": 125
+      },
+      "duration": 250,
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 198,
+        "h": 125
+      },
+      "sourceSize": {
+        "w": 198,
+        "h": 125
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "f01.gif": {
+      "frame": {
+        "x": 0,
+        "y": 125,
+        "w": 198,
+        "h": 125
+      },
+      "duration": 250,
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 198,
+        "h": 125
+      },
+      "sourceSize": {
+        "w": 198,
+        "h": 125
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "f02.gif": {
+      "frame": {
+        "x": 0,
+        "y": 250,
+        "w": 198,
+        "h": 125
+      },
+      "duration": 250,
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 198,
+        "h": 125
+      },
+      "sourceSize": {
+        "w": 198,
+        "h": 125
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "f03.gif": {
+      "frame": {
+        "x": 0,
+        "y": 375,
+        "w": 198,
+        "h": 125
+      },
+      "duration": 250,
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 198,
+        "h": 125
+      },
+      "sourceSize": {
+        "w": 198,
+        "h": 125
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "f04.gif": {
+      "frame": {
+        "x": 0,
+        "y": 500,
+        "w": 198,
+        "h": 125
+      },
+      "duration": 250,
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 198,
+        "h": 125
+      },
+      "sourceSize": {
+        "w": 198,
+        "h": 125
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "f05.gif": {
+      "frame": {
+        "x": 0,
+        "y": 625,
+        "w": 198,
+        "h": 125
+      },
+      "duration": 250,
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 198,
+        "h": 125
+      },
+      "sourceSize": {
+        "w": 198,
+        "h": 125
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "f06.gif": {
+      "frame": {
+        "x": 0,
+        "y": 750,
+        "w": 198,
+        "h": 125
+      },
+      "duration": 250,
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 198,
+        "h": 125
+      },
+      "sourceSize": {
+        "w": 198,
+        "h": 125
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "f07.gif": {
+      "frame": {
+        "x": 0,
+        "y": 875,
+        "w": 198,
+        "h": 125
+      },
+      "duration": 250,
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 198,
+        "h": 125
+      },
+      "sourceSize": {
+        "w": 198,
+        "h": 125
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "f08.gif": {
+      "frame": {
+        "x": 0,
+        "y": 1000,
+        "w": 198,
+        "h": 125
+      },
+      "duration": 250,
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 198,
+        "h": 125
+      },
+      "sourceSize": {
+        "w": 198,
+        "h": 125
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "f09.gif": {
+      "frame": {
+        "x": 0,
+        "y": 1125,
+        "w": 198,
+        "h": 125
+      },
+      "duration": 250,
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 198,
+        "h": 125
+      },
+      "sourceSize": {
+        "w": 198,
+        "h": 125
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "f10.gif": {
+      "frame": {
+        "x": 0,
+        "y": 1250,
+        "w": 198,
+        "h": 125
+      },
+      "duration": 250,
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 198,
+        "h": 125
+      },
+      "sourceSize": {
+        "w": 198,
+        "h": 125
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    }
+  },
+  "meta": {
+    "app": "https://www.codeandweb.com/texturepacker",
+    "version": "1.0",
+    "image": "classic-skier-anim.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 198,
+      "h": 1375
+    },
+    "scale": "1",
+    "smartupdate": "$TexturePacker:SmartUpdate:bf9c13509ddef998cc246d782a9698c9:912af71103eaa8b1a24954f6eb61589a:8864e14f265992ac71ae279c97209c28$"
+  }
 }

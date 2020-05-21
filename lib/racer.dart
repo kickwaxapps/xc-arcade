@@ -1,16 +1,17 @@
+import 'package:box2d_flame/box2d.dart';
+
 import 'game-components/controllers/controller.dart';
 import 'game-components/controllers/npc-ctrl.dart';
-import 'package:box2d_flame/box2d.dart';
 import 'units.dart';
 
 class Racer {
-
   NpcController controller;
 
-  Vector2 get heading => body.getWorldVector(Vector2(0,-1));
+  Vector2 get heading => body.getWorldVector(Vector2(0, -1));
 
-  Vector2 get forwardNormal => body.getWorldVector(Vector2(0,-1));
-  Vector2 get rightNormal => body.getWorldVector(Vector2(-1,0));
+  Vector2 get forwardNormal => body.getWorldVector(Vector2(0, -1));
+
+  Vector2 get rightNormal => body.getWorldVector(Vector2(-1, 0));
 
   double get speed => getForwardVelocity().dot(forwardNormal);
 
@@ -36,10 +37,9 @@ class Racer {
     shape.p.setFrom(Vector2.zero());
     shape.radius = 1;
 
-
     BodyDef bd = BodyDef();
     bd.linearVelocity = Vector2.zero();
-    bd.position = Vector2(0,0);
+    bd.position = Vector2(0, 0);
     bd.type = BodyType.DYNAMIC;
     body = world.createBody(bd);
     body.userData = this;
@@ -51,41 +51,38 @@ class Racer {
 //    fd.friction = 10;
     fd.shape = shape;
     body.createFixtureFromFixtureDef(fd);
-
   }
 
   void updateFriction() {
     //lateral linear velocity
     double maxLateralImpulse = 2.5;
-    Vector2 impulse =lateralVelocity *  body.mass * -1 ;
-    if ( impulse.length > maxLateralImpulse )
-      impulse = impulse * maxLateralImpulse / impulse.length;
-    body.applyLinearImpulse( impulse, body.worldCenter, true );
+    Vector2 impulse = lateralVelocity * body.mass * -1;
+    if (impulse.length > maxLateralImpulse) impulse = impulse * maxLateralImpulse / impulse.length;
+    body.applyLinearImpulse(impulse, body.worldCenter, true);
 
     //angular velocity
-    body.applyAngularImpulse( body.angularVelocity * 0.1 * body.getInertia() * -1 );
+    body.applyAngularImpulse(body.angularVelocity * 0.1 * body.getInertia() * -1);
 
     //forward linear velocity
     Vector2 currentForwardNormal = getForwardVelocity();
     double currentForwardSpeed = currentForwardNormal.normalize();
     double dragForceMagnitude = -2 * currentForwardSpeed;
-    body.applyForce( currentForwardNormal * dragForceMagnitude , body.worldCenter);
+    body.applyForce(currentForwardNormal * dragForceMagnitude, body.worldCenter);
   }
-  void update(double dt ) {
+
+  void update(double dt) {
     updateFriction();
     updateSpeed(dt);
     updateSteering(dt);
   }
 
   void updateSpeed(double dt) {
-    final s = speed,
-        maxSpeed = 90.0,
-        driveForce = 45.0;
+    final s = speed, maxSpeed = 90.0, driveForce = 45.0;
 
     double force = 0;
     if (s < maxSpeed) {
       force += driveForce;
-    } else if ( s > maxSpeed) {
+    } else if (s > maxSpeed) {
       force += -driveForce;
     } else {
       return;
@@ -95,8 +92,8 @@ class Racer {
   }
 
   void updateSteering(double dt) {
-    double  desiredTorque = 0;
-    switch ( steering) {
+    double desiredTorque = 0;
+    switch (steering) {
       case Steeering.none:
         break;
       case Steeering.slightLeft:
@@ -112,22 +109,19 @@ class Racer {
         desiredTorque = 15;
         break;
     }
-    body.angularVelocity = desiredTorque/3;
+    body.angularVelocity = desiredTorque / 3;
     //body.applyTorque(-1100);
   }
 
   void setPositionAndRotation(double x, double y, double angle) {
-    body.setTransform(Vector2(x,y), angle);
+    body.setTransform(Vector2(x, y), angle);
   }
-
-
 
   Vector2 get lateralVelocity {
     return rightNormal * rightNormal.dot(body.linearVelocity);
   }
 
   Vector2 getForwardVelocity() {
-    return forwardNormal * forwardNormal.dot(body.linearVelocity );
+    return forwardNormal * forwardNormal.dot(body.linearVelocity);
   }
-
 }

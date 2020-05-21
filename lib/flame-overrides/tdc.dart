@@ -7,20 +7,18 @@ import 'package:flame/flame.dart';
 import 'package:flutter/material.dart' show Colors;
 import 'package:tiled/tiled.dart' hide Image;
 
-
 class TSMP extends TsxProvider {
   String content;
+
   TSMP(this.content);
+
   @override
   String getSource(String key) {
-
     return content;
   }
-
-
 }
-class MyTiledComponent extends Component {
 
+class MyTiledComponent extends Component {
   TsxProvider tileSetProvider;
   String filename;
   TileMap map;
@@ -59,7 +57,7 @@ class MyTiledComponent extends Component {
     return result;
   }
 
-  List<Point> get track => loaded() ? map.objectGroups.firstWhere((e) => e.name == 'breadcrumbs')??List():List();
+  List<Point> get track => loaded() ? map.objectGroups.firstWhere((e) => e.name == 'breadcrumbs') ?? List() : List();
 
   @override
   bool loaded() => _loaded;
@@ -86,10 +84,9 @@ class MyTiledComponent extends Component {
       final image = images[tile.image.source];
 
       final rect = tile.computeDrawRect();
-      final src = Rect.fromLTWH(rect.left.toDouble(), rect.top.toDouble(),
-          rect.width.toDouble(), rect.height.toDouble());
-      final dst = Rect.fromLTWH(tile.x.toDouble(), tile.y.toDouble(),
-          rect.width.toDouble(), rect.height.toDouble());
+      final src =
+          Rect.fromLTWH(rect.left.toDouble(), rect.top.toDouble(), rect.width.toDouble(), rect.height.toDouble());
+      final dst = Rect.fromLTWH(tile.x.toDouble(), tile.y.toDouble(), rect.width.toDouble(), rect.height.toDouble());
 
       c.drawImageRect(image, src, dst, paint);
     });
@@ -100,8 +97,7 @@ class MyTiledComponent extends Component {
 
   Future<ObjectGroup> getObjectGroupFromLayer(String name) {
     return future.then((onValue) {
-      return map.objectGroups
-          .firstWhere((objectGroup) => objectGroup.name == name);
+      return map.objectGroups.firstWhere((objectGroup) => objectGroup.name == name);
     });
   }
 }
