@@ -6,21 +6,39 @@ import 'package:flame/animation.dart' as flame_anim;
 import 'package:flame/components/component.dart';
 import 'package:flame/spritesheet.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:xc_arcade/game-components/controllers/controller.dart';
+import 'package:xc_arcade/game-components/controllers/player-ctrl.dart';
+import 'package:xc_arcade/game-components/course-cmp.dart';
 
 import '../racer.dart';
 import 'controllers/npc-ctrl.dart';
 
 class RacerCmp extends PositionComponent {
   flame_anim.Animation walkAnimation;
+  flame_anim.Animation doublePoleAnimation;
+  flame_anim.Animation tuckAnimation;
   final world;
+  final CourseCmp course;
   Racer racer;
-  final List<Vector2> breadCrumbs;
-  NpcController controller;
+  Controller controller;
 
+  int targetSegment = 1;
+  double segmentProgress = 0;
+
+  Vector2 segmentStart= Vector2.zero();
+  Vector2 segmentEnd = Vector2.zero();
+  Vector2 segment = Vector2.zero();
+
+  double completedSegmentProgress = 0;
+
+
+  List<Vector2> get  breadCrumbs => course.breadCrumbs;
   Vector2 get heading => racer.forwardNormal;
 
-  RacerCmp(SpriteSheet spriteSheet, breadCrumbs_, this.world) : breadCrumbs = pointCleaner(breadCrumbs_, 5) {
-    walkAnimation = spriteSheet.createAnimation(0, stepTime: .05);
+  RacerCmp(SpriteSheet spriteSheet, this.course, this.world, {SpriteSheet doublePole , SpriteSheet tuck, bool isPlayer})  {
+    walkAnimation = spriteSheet.createAnimation(0, stepTime: .15);
+    doublePoleAnimation = doublePole?.createAnimation(0, stepTime: .1);
+   // tuckAnimation = tuck?.createAnimation(0, stepTime: .15);
 
     final startPos = breadCrumbs.first;
     width = 32;
@@ -30,15 +48,16 @@ class RacerCmp extends PositionComponent {
     anchor = Anchor.center;
 
     racer = Racer(world);
-    controller = NpcController(breadCrumbs, racer);
+    controller = isPlayer ? PlayerController(this) : NpcController(this);
     racer.controller = controller;
-    racer.setPositionAndRotation(startPos.x, startPos.y, 0);
+    racer.setPositionAndRotation(startPos.x, startPos.y, this.course.startAngle);
   }
 
   @override
   void update(double dt) {
     if (!loaded()) return;
 
+    updateTracking(dt);
     controller.update(dt);
     racer.update(dt);
 
@@ -48,32 +67,54 @@ class RacerCmp extends PositionComponent {
 
     super.update(dt);
     walkAnimation.update(dt);
+    if (doublePoleAnimation != null) {
+      doublePoleAnimation.update(dt);
+    }
   }
 
   @override
   void render(Canvas c) {
     prepareCanvas(c);
-    walkAnimation.getSprite().render(c, width: width, height: height);
+
+    if (racer.technique == Technique.DOUBLE_POLE) {
+      doublePoleAnimation.getSprite().render(c, width: width, height: height);
+    } else {
+      walkAnimation.getSprite().render(c, width: width, height: height);
+    }
   }
 
   @override
   bool loaded() {
-    return walkAnimation.loaded() && x != null && y != null;
+    if (doublePoleAnimation!=null)
+    return walkAnimation.loaded() && doublePoleAnimation.loaded()
+
+        && x != null && y != null;
+    else return walkAnimation.loaded();
   }
-}
 
-List<Vector2> pointCleaner(List<Vector2> points, double minThreshold) {
-  final List<Vector2> result = List();
+  void updateTracking(double dt) {
+    final prevIndex = targetSegment == 0 ? breadCrumbs.length - 1 : targetSegment - 1,
+        nextIndex = targetSegment,
+        prev = breadCrumbs[prevIndex],
+        next = breadCrumbs[nextIndex];
 
-  points.forEach((p) {
-    if (result.length == 0) {
-      result.add(p);
-    } else {
-      if (p.distanceTo(result.last) > minThreshold) {
-        result.add(p);
+    segment = (next - prev);
+    segmentStart = prev;
+    segmentEnd = next;
+
+    final prev2Pos = racer.body.position - segmentStart;
+    segmentProgress =  (prev2Pos.dot(segment) / segment.dot(segment));
+
+    if (segmentProgress.abs() > .95) {
+      targetSegment++;
+      completedSegmentProgress += segment.length;
+      if (targetSegment == breadCrumbs.length) {
+        targetSegment = 0;
       }
     }
-  });
+  }
+  double get courseProgress => completedSegmentProgress + segmentProgress * segment.length;
 
-  return result;
 }
+
+

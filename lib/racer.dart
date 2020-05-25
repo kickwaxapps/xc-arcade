@@ -1,11 +1,14 @@
 import 'package:box2d_flame/box2d.dart';
 
 import 'game-components/controllers/controller.dart';
-import 'game-components/controllers/npc-ctrl.dart';
 import 'units.dart';
 
 class Racer {
-  NpcController controller;
+  Controller controller;
+
+  Technique technique = Technique.NONE;
+
+  Steering userSteer =  Steering.none;
 
   Vector2 get heading => body.getWorldVector(Vector2(0, -1));
 
@@ -19,7 +22,7 @@ class Racer {
 
   Vector2 perp;
 
-  Steeering steering = Steeering.none;
+  Steering steering = Steering.none;
 
   CircleShape shape;
 
@@ -77,13 +80,37 @@ class Racer {
   }
 
   void updateSpeed(double dt) {
-    final s = speed, maxSpeed = 90.0, driveForce = 45.0;
+    var s = speed, maxSpeed = 100.0, driveForce = 45.0;
+    double bonus = 0;
+
+    switch (technique) {
+      case Technique.NONE:
+        maxSpeed = 10;
+        driveForce = 10;
+        bonus = 0;
+        break;
+      case Technique.SKATE_1:
+        bonus = 6;
+        break;
+      case Technique.SKATE_2:
+        bonus = 40;
+        break;
+      case Technique.DOUBLE_POLE:
+        bonus = 5;
+        break;
+      case Technique.SPRINT:
+        bonus = 70;
+        break;
+      case Technique.TUCK:
+      // TODO: Handle this case.
+        break;
+    }
 
     double force = 0;
     if (s < maxSpeed) {
-      force += driveForce;
+      force += (driveForce+bonus);
     } else if (s > maxSpeed) {
-      force += -driveForce;
+      force += -(driveForce+bonus);
     } else {
       return;
     }
@@ -94,18 +121,18 @@ class Racer {
   void updateSteering(double dt) {
     double desiredTorque = 0;
     switch (steering) {
-      case Steeering.none:
+      case Steering.none:
         break;
-      case Steeering.slightLeft:
+      case Steering.slightLeft:
         desiredTorque = -5;
         break;
-      case Steeering.slightRight:
+      case Steering.slightRight:
         desiredTorque = 5;
         break;
-      case Steeering.hardLeft:
+      case Steering.hardLeft:
         desiredTorque = -15;
         break;
-      case Steeering.hardRight:
+      case Steering.hardRight:
         desiredTorque = 15;
         break;
     }
@@ -124,4 +151,6 @@ class Racer {
   Vector2 getForwardVelocity() {
     return forwardNormal * forwardNormal.dot(body.linearVelocity);
   }
+
+
 }

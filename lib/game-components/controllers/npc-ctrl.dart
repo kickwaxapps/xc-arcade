@@ -1,55 +1,45 @@
-import 'package:box2d_flame/box2d.dart';
 import 'package:xc_arcade/units.dart';
 
-import '../../racer.dart';
 import 'controller.dart';
 
-class NpcController {
-  NpcController(this.breadCrumbs, this.racer);
+class NpcController  extends Controller {
 
-  final Racer racer;
-  int targetIndex = 1;
+  NpcController(racerCmp): super(racerCmp);
 
-  final List<Vector2> breadCrumbs;
 
-  void update(double dt) {
-    final prevIndex = targetIndex == 0 ? breadCrumbs.length - 1 : targetIndex - 1,
-        nextIndex = targetIndex,
-        prev = breadCrumbs[prevIndex],
-        next = breadCrumbs[nextIndex],
-        courseHeading = (next - prev).normalized(),
-        diff = racer.heading.angleToSigned(courseHeading),
-        lr = diff.sign,
-        diffMag = diff.abs();
 
-    final prev2Pos = racer.body.position - prev,
-        segment = next - prev,
-        projCoef = (prev2Pos.dot(segment) / segment.dot(segment)),
-        projectPoint = segment * projCoef;
+  void updateTechnique(double dt) {
+    racerCmp.racer.technique = Technique.SKATE_1;
+  }
 
-    if (projCoef.abs() > .95) {
-      targetIndex++;
-      if (targetIndex == breadCrumbs.length) {
-        targetIndex = 0;
-      }
-    }
+  void updateSteering(double dt) {
+   final racer = racerCmp.racer,
+      segment = racerCmp.segment,
+      segmentStart = racerCmp.segmentStart,
+      diff = racerCmp.heading.angleToSigned(segment),
+      lr = diff.sign,
+      diffMag = diff.abs();
 
-    Steeering desiredSteering = Steeering.none;
+
+    final segProgress = racerCmp.segmentProgress;
+    Steering desiredSteering = Steering.none;
     if (diffMag < 10 * DEGREES) {
-      desiredSteering = Steeering.none;
+      desiredSteering = Steering.none;
     } else if (diffMag < 20 * DEGREES) {
-      desiredSteering = lr < 0 ? Steeering.slightLeft : Steeering.slightRight;
+      desiredSteering = lr < 0 ? Steering.slightLeft : Steering.slightRight;
     } else {
-      desiredSteering = lr < 0 ? Steeering.hardLeft : Steeering.hardRight;
+      desiredSteering = lr < 0 ? Steering.hardLeft : Steering.hardRight;
     }
-    if (desiredSteering == Steeering.none && projCoef.abs() < .80) {
+    if (desiredSteering == Steering.none && segProgress.abs() < .80) {
+      final projectPoint = segment * segProgress;
+      final prev2Pos = racer.body.position - segmentStart;
       final dist = prev2Pos.distanceTo(projectPoint);
       if (dist > 1) {
         final side = segment.cross(prev2Pos) * -1;
         if (side > 0) {
-          desiredSteering = Steeering.slightRight;
+          desiredSteering = Steering.slightRight;
         } else if (side < 0) {
-          desiredSteering = Steeering.slightLeft;
+          desiredSteering = Steering.slightLeft;
         }
       }
     }

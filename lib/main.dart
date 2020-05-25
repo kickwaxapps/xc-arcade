@@ -1,17 +1,20 @@
 import 'package:box2d_flame/box2d.dart';
 import 'package:flame/components/component.dart';
+import 'package:flame/components/text_component.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 import 'package:flame/gestures.dart';
 import 'package:flame/spritesheet.dart';
-import 'package:flame/text_config.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:xc_arcade/flame-overrides/hud.dart';
 import 'package:xc_arcade/flame-overrides/tdc.dart';
+import 'package:xc_arcade/game-components/controllers/controller.dart';
+import 'package:xc_arcade/game-components/controllers/player-ctrl.dart';
+import 'package:xc_arcade/game-components/meter-cmp.dart';
 
 import 'game-components/course-cmp.dart';
 import 'game-components/racer-cmp.dart';
-import 'units.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,17 +26,28 @@ void main() async {
   runApp(game.widget);
 }
 
-class MyGame extends BaseGame with /*PanDetector, */ ScaleDetector {
+class MyGame extends BaseGame with MultiTouchDragDetector, MultiTouchDragDetector {
   Offset lastTouch = Offset.zero;
   double scale = 1.0;
 
   RacerCmp player;
   MyTiledComponent tc;
 
+  TextComponent _dist;
+  TextComponent _playerDist;
+  TextComponent _playerLapSplit;
+  TextComponent _playerLap;
+  MeterCmp _meterCmp;
   World world;
 
   double cameraRotation = 0;
   double targetCameraRotation = 0;
+
+  CourseCmp course;
+
+  Technique gestureTechnique = Technique.NONE;
+
+  Steering gestureSteering = Steering.none;
 
   bool debugMode() => false;
 
@@ -41,16 +55,36 @@ class MyGame extends BaseGame with /*PanDetector, */ ScaleDetector {
     world = World.withPool(Vector2.zero(), DefaultWorldPool(100, 10));
     tc = MyTiledComponent('track2.tmx', tsp);
 
+    _dist = HudText('What', 20, 50);
+    _playerDist = HudText('What', 0, 10);
+//    _playerLapSplit = HudText('What', ,55);
+    _playerLap = HudText('What', 0, 10);
+
+    add(_dist);
+    add(_playerDist);
+    add(_playerLap);
+
+    final x = MeterCmp();
+
+    _meterCmp = x;
+    add(x);
+
     ///world.debugDraw = CanvasDraw();
     add(tc);
+
+    Flame.audio.loadAll(['dp-hit.wav', 'dp-miss.wav']);
   }
 
   @override
   void update(dt) {
     if (player == null && tc.loaded()) {
-      final geoMeta = tc.map.objectGroups.firstWhere((e) => e.name == 'geo');
-      final bc = geoMeta.tmxObjects.firstWhere((e) => e.name == 'breadcrumbs');
-      final ss = SpriteSheet(imageName: 'walker0.png', textureWidth: 64, textureHeight: 64, columns: 8, rows: 1);
+      final List courseGeoObjects = tc.map.objectGroups.firstWhere((e) => e.name == 'geo').tmxObjects;
+      course = CourseCmp(courseGeoObjects, world);
+
+      final ss = SpriteSheet(imageName: 'sp.png', textureWidth: 64, textureHeight: 64, columns: 4, rows: 1);
+      final dp = SpriteSheet(imageName: 'dp.png', textureWidth: 64, textureHeight: 64, columns: 6, rows: 1);
+      //   final tk = SpriteSheet(imageName: 'tk.png', textureWidth: 64, textureHeight: 64, columns: 1, rows: 1);
+
       final sss = [
         SpriteSheet(imageName: 'walker1.png', textureWidth: 64, textureHeight: 64, columns: 8, rows: 1),
         SpriteSheet(imageName: 'walker2.png', textureWidth: 64, textureHeight: 64, columns: 8, rows: 1),
@@ -59,65 +93,37 @@ class MyGame extends BaseGame with /*PanDetector, */ ScaleDetector {
         SpriteSheet(imageName: 'walker5.png', textureWidth: 64, textureHeight: 64, columns: 8, rows: 1)
       ];
 
-      player = RacerCmp(
-          ss,
-          bc.points
-              .map((p) => Vector2(bc.x.toDouble() + p.x.toDouble(), bc.y.toDouble() + p.y.toDouble()) * METERS)
-              .toList(),
-          world);
+      player = RacerCmp(ss, course, world, doublePole: dp, isPlayer: true);
       add(player);
-      player.width = 48;
-      player.height = 48;
+      player.width = 32;
+      player.height = 32;
 
-      for (int i = 1; i <= 100; i++)
-        add(RacerCmp(
-            sss[i % 5],
-            bc.points
-                .map((p) =>
-                    Vector2(bc.x.toDouble() + p.x.toDouble() + 2.0 * i, bc.y.toDouble() + p.y.toDouble()) * METERS)
-                .toList(),
-            world));
+      for (int i = 1; i <= 3; i++) add(RacerCmp(sss[i % 5], course, world, isPlayer: false));
 
-      add(CourseCmp(geoMeta, world));
+      add(course);
+
+      _meterCmp.x = size.width / 2 + 10;
+      _meterCmp.y = size.height / 2 - 10;
+      _meterCmp.height = 75;
+      _meterCmp.width = 20;
+      _dist.text = 'Course Length ${course.length.toStringAsFixed(2)}m';
     }
 
-    if (player != null) {
-      camera.x = player.x;
-      camera.y = player.y;
-
-      final double b = (player.heading == null) ? 0 : player.heading.angleToSigned(Vector2(0, -1));
-      targetCameraRotation = b;
+    if (player == null) {
+      return;
     }
+
+    player.controller.setInputSteering(gestureSteering);
+    _playerDist.text = 'Player: ' + player.courseProgress.toStringAsFixed(1) + 'm';
+    _playerLap.text = 'Lap ${(player.courseProgress / course.length).floor() + 1}';
+    camera.x = player.x;
+    camera.y = player.y;
 
     world.stepDt(dt, 10, 10);
-
-    ///world.clearForces();
     super.update(dt);
 
-    final baseDiff = targetCameraRotation - cameraRotation,
-        diff360 = 360 * DEGREES - baseDiff,
-        diff = (baseDiff.abs() < diff360.abs()) ? baseDiff : diff360;
-
-    final dir = diff.sign;
-    final mag = diff.abs();
-    double step = 0;
-    if (mag > 45 * DEGREES) {
-      step = .1;
-    } else if (mag > 20 * DEGREES) {
-      step = 0.05;
-    } else if (mag > 10 * DEGREES) {
-      step = 0.025;
-    } else if (mag > 2 * DEGREES) {
-      step = 0.00125;
-    } else {
-      step = 0;
-      //dcameraRotation = targetCameraRotation;
-    }
-
-    cameraRotation = cameraRotation + dir * step / 5;
+    cameraRotation = player.heading.angleToSigned(Vector2(0, -1));
   }
-
-  final xxx = const TextConfig(color: const Color(0xFF0000FF));
 
   @override
   void render(Canvas canvas) {
@@ -129,8 +135,10 @@ class MyGame extends BaseGame with /*PanDetector, */ ScaleDetector {
     }
 
     canvas.save();
-    components.forEach((comp) => renderComponent(canvas, comp));
+    components.where((e) => !e.isHud()).forEach((comp) => renderComponent(canvas, comp));
     canvas.restore();
+    canvas.restore();
+    components.where((e) => e.isHud()).forEach((comp) => comp.render(canvas));
   }
 
   /// This renders a single component obeying BaseGame rules.
@@ -157,27 +165,54 @@ class MyGame extends BaseGame with /*PanDetector, */ ScaleDetector {
   }
 
   @override
-  void onTapDown(TapDownDetails details) {
-    //player.onTap();
+  onReceiveDrag(DragEvent drag) {
+    drag.onUpdate = onDragUpdate;
+    drag.onEnd = onDragEnd;
+    gestureTechnique = Technique.NONE;
+    gestureSteering = Steering.none;
   }
 
-  @override
-  void onScaleStart(ScaleStartDetails details) {
-    lastTouch = details.focalPoint;
-    print(details);
-  }
+  void onDragUpdate(DragUpdateDetails updateDetails) {
+    if (updateDetails.globalPosition.dy < size.height / 2) {
+      gestureSteering = updateDetails.delta.dx > 0 ? Steering.slightRight : Steering.slightLeft;
+      return;
+    }
 
-  @override
-  void onScaleUpdate(ScaleUpdateDetails details) {
-    if (details.scale == 1.0) {
-      /*  Offset dir = details.focalPoint - lastTouch;
-      final travelX = dir.dx.sign;
-      final travelY = dir.dy.sign;
-      camera += flame_pos.Position(5* travelX ,5 * travelY );
-      lastTouch = details.focalPoint;*/
+    if (gestureTechnique != Technique.NONE) {
+      return;
+    }
+
+    if (updateDetails.delta.dx.abs() > updateDetails.delta.dy.abs()) {
+      gestureTechnique = Technique.SKATE_1;
     } else {
-      print("Scale: ${details.scale}");
-      scale = details.scale;
+      startDoublePoleInput();
+    }
+  }
+
+  void onDragEnd(DragEndDetails endDetails) {
+    if (gestureTechnique == Technique.DOUBLE_POLE) {
+      endDoublePoleInput();
+    }
+    gestureTechnique = Technique.NONE;
+    gestureSteering = Steering.none;
+  }
+
+  @override
+  void onTapDown(int pointerId, TapDownDetails details) {
+    //  print('Tap $pointerId');
+    super.onTap(pointerId);
+  }
+
+  void startDoublePoleInput() {
+    gestureTechnique = Technique.DOUBLE_POLE;
+    (player.controller as PlayerController).doDoublePoleInput(250);
+    _meterCmp.start(1, .75, .9);
+  }
+
+  void endDoublePoleInput() {
+    final factor = _meterCmp.end();
+    if (factor == 1) {
+      (player.controller as PlayerController).doDoublePoleInput(1000);
     }
   }
 }
