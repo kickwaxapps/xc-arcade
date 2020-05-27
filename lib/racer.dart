@@ -8,7 +8,7 @@ class Racer {
 
   Technique technique = Technique.NONE;
 
-  Steering userSteer =  Steering.none;
+  Steering userSteer =  Steering.NONE;
 
   Vector2 get heading => body.getWorldVector(Vector2(0, -1));
 
@@ -22,7 +22,7 @@ class Racer {
 
   Vector2 perp;
 
-  Steering steering = Steering.none;
+  Steering steering = Steering.NONE;
 
   CircleShape shape;
 
@@ -121,18 +121,18 @@ class Racer {
   void updateSteering(double dt) {
     double desiredTorque = 0;
     switch (steering) {
-      case Steering.none:
+      case Steering.NONE:
         break;
-      case Steering.slightLeft:
+      case Steering.SLIGHT_LEFT:
         desiredTorque = -5;
         break;
-      case Steering.slightRight:
+      case Steering.SLIGHT_RIGHT:
         desiredTorque = 5;
         break;
-      case Steering.hardLeft:
+      case Steering.HARD_LEFT:
         desiredTorque = -15;
         break;
-      case Steering.hardRight:
+      case Steering.HARD_RIGHT:
         desiredTorque = 15;
         break;
     }

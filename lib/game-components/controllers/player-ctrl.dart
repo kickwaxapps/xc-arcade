@@ -30,7 +30,7 @@ class PlayerController extends Controller{
   @override
   void updateSteering(double dt) {
   racerCmp.racer.steering = inputSteering;
-  inputSteering = Steering.none;
+  inputSteering = Steering.NONE;
 
   }
 

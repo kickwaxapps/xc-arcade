@@ -12,17 +12,17 @@ import 'package:xc_arcade/flame-overrides/tdc.dart';
 import 'package:xc_arcade/game-components/controllers/controller.dart';
 import 'package:xc_arcade/game-components/controllers/player-ctrl.dart';
 import 'package:xc_arcade/game-components/meter-cmp.dart';
+import 'package:xc_arcade/game-components/race-cmp.dart';
 
 import 'game-components/course-cmp.dart';
 import 'game-components/racer-cmp.dart';
+import 'game-components/season-cmp.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final Size size = await Flame.util.initialDimensions();
 
-  final String content = await Flame.assets.readFile('tiles/winter.tsx');
-
-  final game = MyGame(TSMP(content));
+  final game = MyGame();
   runApp(game.widget);
 }
 
@@ -30,8 +30,10 @@ class MyGame extends BaseGame with MultiTouchDragDetector, MultiTouchDragDetecto
   Offset lastTouch = Offset.zero;
   double scale = 1.0;
 
-  RacerCmp player;
+
   MyTiledComponent tc;
+
+
 
   TextComponent _dist;
   TextComponent _playerDist;
@@ -44,16 +46,42 @@ class MyGame extends BaseGame with MultiTouchDragDetector, MultiTouchDragDetecto
   double targetCameraRotation = 0;
 
   CourseCmp course;
-
+  Season season;
   Technique gestureTechnique = Technique.NONE;
 
-  Steering gestureSteering = Steering.none;
+  Steering gestureSteering = Steering.NONE;
+
+
+  RacerCmp _player;
+  RacerCmp get player => _player;
+  set player(RacerCmp v) {
+    _player?.done = true;
+    _player = v;
+    _player.mode = RacerMode.RACING;
+    addLater(_player);
+  }
+  List<RacerCmp> _npcs = List();
+  List<RacerCmp> get npcs => _npcs;
+  set npcs (List<RacerCmp> v) {
+    _npcs.forEach((e)=> e.done = true);
+    _npcs = v;
+    _npcs.forEach((e) {
+      e.mode = RacerMode.RACING;
+      addLater(e);
+    });
+  }
+
+  SpriteSheet sprintSheet;
+  SpriteSheet doublePoleSheet;
+  List<SpriteSheet> npcSheets;
 
   bool debugMode() => false;
 
-  MyGame(tsp) {
+  bool inRaceMode = false;
+  bool loaded = false;
+
+  MyGame() {
     world = World.withPool(Vector2.zero(), DefaultWorldPool(100, 10));
-    tc = MyTiledComponent('track2.tmx', tsp);
 
     _dist = HudText('What', 20, 50);
     _playerDist = HudText('What', 0, 10);
@@ -69,66 +97,118 @@ class MyGame extends BaseGame with MultiTouchDragDetector, MultiTouchDragDetecto
     _meterCmp = x;
     add(x);
 
-    ///world.debugDraw = CanvasDraw();
-    add(tc);
-
     Flame.audio.loadAll(['dp-hit.wav', 'dp-miss.wav']);
+
+    init();
+  }
+
+  init() async {
+    loaded = false;
+    final String content = await Flame.assets.readFile('tiles/winter.tsx');
+    final tsp = TSMP(content);
+    tc = MyTiledComponent('track3.tmx', tsp);
+    await tc.future;
+    final List courseGeoObjects = tc.map.objectGroups.firstWhere((e) => e.name == 'geo').tmxObjects;
+    course = CourseCmp(courseGeoObjects, world);
+
+    sprintSheet = SpriteSheet(imageName: 'sp.png', textureWidth: 64, textureHeight: 64, columns: 4, rows: 1);
+    doublePoleSheet = SpriteSheet(imageName: 'dp.png', textureWidth: 64, textureHeight: 64, columns: 6, rows: 1);
+    //   final tk = SpriteSheet(imageName: 'tk.png', textureWidth: 64, textureHeight: 64, columns: 1, rows: 1);
+
+    npcSheets = [
+      SpriteSheet(imageName: 'walker1.png', textureWidth: 64, textureHeight: 64, columns: 8, rows: 1),
+      SpriteSheet(imageName: 'walker2.png', textureWidth: 64, textureHeight: 64, columns: 8, rows: 1),
+      SpriteSheet(imageName: 'walker3.png', textureWidth: 64, textureHeight: 64, columns: 8, rows: 1),
+      SpriteSheet(imageName: 'walker4.png', textureWidth: 64, textureHeight: 64, columns: 8, rows: 1),
+      SpriteSheet(imageName: 'walker5.png', textureWidth: 64, textureHeight: 64, columns: 8, rows: 1)
+    ];
+
+
+    _meterCmp.x = size.width / 2 + 10;
+    _meterCmp.y = size.height / 2 - 10;
+    _meterCmp.height = 75;
+    _meterCmp.width = 20;
+    _dist.text = 'Course Length ${course.length.toStringAsFixed(2)}m';
+
+    final sl = [sprintSheet,doublePoleSheet, ...npcSheets];
+    bool x = false;
+    while (!x) {
+      await Future.delayed(Duration(milliseconds: 100), () {
+        x = sl.where((e) => e.getSprite(0, 0).image == null).length == 0;
+      });
+    }
+
+    List<SkierProfile> skiers = [SkierProfile(firstName: 'Darcy', lastName: 'Blindham', bib: 0, nationCode: 'CAN'),
+      SkierProfile(firstName: 'Darcy', lastName: 'Blindham', bib: 0, nationCode: 'CAN'),
+      SkierProfile(firstName: 'Darcy', lastName: 'Blindham', bib: 0, nationCode: 'CAN'),
+      SkierProfile(firstName: 'Darcy', lastName: 'Blindham', bib: 0, nationCode: 'CAN'),
+      SkierProfile(firstName: 'Darcy', lastName: 'Blindham', bib: 0, nationCode: 'CAN'),
+      SkierProfile(firstName: 'Darcy', lastName: 'Blindham', bib: 0, nationCode: 'CAN'),
+      SkierProfile(firstName: 'Darcy', lastName: 'Blindham', bib: 0, nationCode: 'CAN'),
+      SkierProfile(firstName: 'Darcy', lastName: 'Blindham', bib: 0, nationCode: 'CAN'),
+      SkierProfile(firstName: 'Darcy', lastName: 'Blindham', bib: 0, nationCode: 'CAN'),
+      SkierProfile(firstName: 'Darcy', lastName: 'Blindham', bib: 0, nationCode: 'CAN'),
+      SkierProfile(firstName: 'Darcy', lastName: 'Blindham', bib: 0, nationCode: 'CAN'),
+      SkierProfile(firstName: 'Darcy', lastName: 'Blindham', bib: 0, nationCode: 'CAN'),
+      SkierProfile(firstName: 'Darcy', lastName: 'Blindham', bib: 0, nationCode: 'CAN'),
+      SkierProfile(firstName: 'Darcy', lastName: 'Blindham', bib: 0, nationCode: 'CAN'),
+      SkierProfile(firstName: 'Darcy', lastName: 'Blindham', bib: 0, nationCode: 'CAN'),
+      SkierProfile(firstName: 'Darcy', lastName: 'Blindham', bib: 0, nationCode: 'CAN'),
+      SkierProfile(firstName: 'Darcy', lastName: 'Blindham', bib: 0, nationCode: 'CAN'),
+      SkierProfile(firstName: 'Darcy', lastName: 'Blindham', bib: 0, nationCode: 'CAN'),
+      SkierProfile(firstName: 'Darcy', lastName: 'Blindham', bib: 0, nationCode: 'CAN'),
+      SkierProfile(firstName: 'Darcy', lastName: 'Blindham', bib: 0, nationCode: 'CAN'),
+      SkierProfile(firstName: 'Darcy', lastName: 'Blindham', bib: 0, nationCode: 'CAN')
+
+    ];
+
+    season = Season( this, year: 2019, events: [
+      Event(description: 'TdM', from: DateTime(2020, 3, 31), races: [
+        RaceCmp(
+          course: course,
+          skierProfiles: skiers,
+          category: RaceCategory.DISTANCE,
+          discipline: NordicDiscipline.SKATE,
+          format: RaceFormat.MASS_START,
+          laps: 3,
+        )
+      ])
+    ]);
+    add(tc);
+    add(season);
+
+
+    loaded = true;
   }
 
   @override
   void update(dt) {
-    if (player == null && tc.loaded()) {
-      final List courseGeoObjects = tc.map.objectGroups.firstWhere((e) => e.name == 'geo').tmxObjects;
-      course = CourseCmp(courseGeoObjects, world);
-
-      final ss = SpriteSheet(imageName: 'sp.png', textureWidth: 64, textureHeight: 64, columns: 4, rows: 1);
-      final dp = SpriteSheet(imageName: 'dp.png', textureWidth: 64, textureHeight: 64, columns: 6, rows: 1);
-      //   final tk = SpriteSheet(imageName: 'tk.png', textureWidth: 64, textureHeight: 64, columns: 1, rows: 1);
-
-      final sss = [
-        SpriteSheet(imageName: 'walker1.png', textureWidth: 64, textureHeight: 64, columns: 8, rows: 1),
-        SpriteSheet(imageName: 'walker2.png', textureWidth: 64, textureHeight: 64, columns: 8, rows: 1),
-        SpriteSheet(imageName: 'walker3.png', textureWidth: 64, textureHeight: 64, columns: 8, rows: 1),
-        SpriteSheet(imageName: 'walker4.png', textureWidth: 64, textureHeight: 64, columns: 8, rows: 1),
-        SpriteSheet(imageName: 'walker5.png', textureWidth: 64, textureHeight: 64, columns: 8, rows: 1)
-      ];
-
-      player = RacerCmp(ss, course, world, doublePole: dp, isPlayer: true);
-      add(player);
-      player.width = 32;
-      player.height = 32;
-
-      for (int i = 1; i <= 3; i++) add(RacerCmp(sss[i % 5], course, world, isPlayer: false));
-
-      add(course);
-
-      _meterCmp.x = size.width / 2 + 10;
-      _meterCmp.y = size.height / 2 - 10;
-      _meterCmp.height = 75;
-      _meterCmp.width = 20;
-      _dist.text = 'Course Length ${course.length.toStringAsFixed(2)}m';
-    }
-
-    if (player == null) {
+    if (!loaded) {
       return;
     }
 
-    player.controller.setInputSteering(gestureSteering);
-    _playerDist.text = 'Player: ' + player.courseProgress.toStringAsFixed(1) + 'm';
-    _playerLap.text = 'Lap ${(player.courseProgress / course.length).floor() + 1}';
-    camera.x = player.x;
-    camera.y = player.y;
+    if (_player != null ) {
+      _player?.controller?.setInputSteering(gestureSteering);
+      _playerDist.text = 'Player: ' + _player.courseProgress.toStringAsFixed(1) + 'm';
+      _playerLap.text = 'Lap ${(_player.courseProgress / course.length).floor() + 1}';
+      camera.x = _player.x;
+      camera.y = _player.y;
+      cameraRotation = _player.heading.angleToSigned(Vector2(0, -1));
+    }
 
     world.stepDt(dt, 10, 10);
     super.update(dt);
 
-    cameraRotation = player.heading.angleToSigned(Vector2(0, -1));
+
   }
 
   @override
   void render(Canvas canvas) {
+    if (!loaded) {
+      return;
+    }
     canvas.save();
-    if (player != null) {
+    if (_player != null) {
       canvas.translate(size.width / 2, size.height / 2);
       canvas.rotate(cameraRotation);
       canvas.translate(-size.width / 2, -size.height / 2);
@@ -169,12 +249,12 @@ class MyGame extends BaseGame with MultiTouchDragDetector, MultiTouchDragDetecto
     drag.onUpdate = onDragUpdate;
     drag.onEnd = onDragEnd;
     gestureTechnique = Technique.NONE;
-    gestureSteering = Steering.none;
+    gestureSteering = Steering.NONE;
   }
 
   void onDragUpdate(DragUpdateDetails updateDetails) {
     if (updateDetails.globalPosition.dy < size.height / 2) {
-      gestureSteering = updateDetails.delta.dx > 0 ? Steering.slightRight : Steering.slightLeft;
+      gestureSteering = updateDetails.delta.dx > 0 ? Steering.SLIGHT_RIGHT : Steering.SLIGHT_LEFT;
       return;
     }
 
@@ -194,7 +274,7 @@ class MyGame extends BaseGame with MultiTouchDragDetector, MultiTouchDragDetecto
       endDoublePoleInput();
     }
     gestureTechnique = Technique.NONE;
-    gestureSteering = Steering.none;
+    gestureSteering = Steering.NONE;
   }
 
   @override

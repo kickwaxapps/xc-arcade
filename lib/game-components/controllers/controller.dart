@@ -4,17 +4,17 @@ import '../racer-cmp.dart';
 enum Technique { NONE, SKATE_1, SKATE_2, DOUBLE_POLE, SPRINT, TUCK }
 
 enum Steering {
-  none,
-  slightLeft,
-  slightRight,
-  hardLeft,
-  hardRight,
+  NONE,
+  SLIGHT_LEFT,
+  SLIGHT_RIGHT,
+  HARD_LEFT,
+  HARD_RIGHT,
 }
 
 enum Kick {
-  none,
-  left,
-  right,
+  NONE,
+  LEFT,
+  RIGHT,
 }
 
 class Controller {

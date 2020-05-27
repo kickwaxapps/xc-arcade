@@ -22,24 +22,24 @@ class NpcController  extends Controller {
 
 
     final segProgress = racerCmp.segmentProgress;
-    Steering desiredSteering = Steering.none;
+    Steering desiredSteering = Steering.NONE;
     if (diffMag < 10 * DEGREES) {
-      desiredSteering = Steering.none;
+      desiredSteering = Steering.NONE;
     } else if (diffMag < 20 * DEGREES) {
-      desiredSteering = lr < 0 ? Steering.slightLeft : Steering.slightRight;
+      desiredSteering = lr < 0 ? Steering.SLIGHT_LEFT : Steering.SLIGHT_RIGHT;
     } else {
-      desiredSteering = lr < 0 ? Steering.hardLeft : Steering.hardRight;
+      desiredSteering = lr < 0 ? Steering.HARD_LEFT : Steering.HARD_RIGHT;
     }
-    if (desiredSteering == Steering.none && segProgress.abs() < .80) {
+    if (desiredSteering == Steering.NONE && segProgress.abs() < .80) {
       final projectPoint = segment * segProgress;
       final prev2Pos = racer.body.position - segmentStart;
       final dist = prev2Pos.distanceTo(projectPoint);
       if (dist > 1) {
         final side = segment.cross(prev2Pos) * -1;
         if (side > 0) {
-          desiredSteering = Steering.slightRight;
+          desiredSteering = Steering.SLIGHT_RIGHT;
         } else if (side < 0) {
-          desiredSteering = Steering.slightLeft;
+          desiredSteering = Steering.SLIGHT_LEFT;
         }
       }
     }

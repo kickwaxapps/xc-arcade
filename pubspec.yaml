@@ -98,6 +98,7 @@ flutter:
     - assets/images/walker5.png
     - assets/tiles/track1.tmx
     - assets/tiles/track2.tmx
+    - assets/tiles/track3.tmx
     - assets/tiles/winter.tsx
     - assets/audio/dp-hit.wav
     - assets/audio/dp-miss.wav

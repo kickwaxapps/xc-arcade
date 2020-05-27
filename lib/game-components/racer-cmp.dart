@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:box2d_flame/box2d.dart';
@@ -8,20 +9,29 @@ import 'package:flame/spritesheet.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:xc_arcade/game-components/controllers/controller.dart';
 import 'package:xc_arcade/game-components/controllers/player-ctrl.dart';
-import 'package:xc_arcade/game-components/course-cmp.dart';
 
 import '../racer.dart';
 import 'controllers/npc-ctrl.dart';
+import 'race-cmp.dart';
+
+
+enum RacerMode {
+  START_LINE,
+  RACING,
+  FINISHED
+}
 
 class RacerCmp extends PositionComponent {
+
+  bool done = false;
   flame_anim.Animation walkAnimation;
   flame_anim.Animation doublePoleAnimation;
   flame_anim.Animation tuckAnimation;
   final world;
-  final CourseCmp course;
+  final RaceCmp race;
   Racer racer;
   Controller controller;
-
+  RacerMode mode = RacerMode.START_LINE;
   int targetSegment = 1;
   double segmentProgress = 0;
 
@@ -30,12 +40,12 @@ class RacerCmp extends PositionComponent {
   Vector2 segment = Vector2.zero();
 
   double completedSegmentProgress = 0;
+  Duration finishTime;
 
-
-  List<Vector2> get  breadCrumbs => course.breadCrumbs;
+  List<Vector2> get  breadCrumbs => race.course.breadCrumbs;
   Vector2 get heading => racer.forwardNormal;
 
-  RacerCmp(SpriteSheet spriteSheet, this.course, this.world, {SpriteSheet doublePole , SpriteSheet tuck, bool isPlayer})  {
+  RacerCmp(SpriteSheet spriteSheet, this.race, this.world, {SpriteSheet doublePole , SpriteSheet tuck, bool isPlayer})  {
     walkAnimation = spriteSheet.createAnimation(0, stepTime: .15);
     doublePoleAnimation = doublePole?.createAnimation(0, stepTime: .1);
    // tuckAnimation = tuck?.createAnimation(0, stepTime: .15);
@@ -50,15 +60,30 @@ class RacerCmp extends PositionComponent {
     racer = Racer(world);
     controller = isPlayer ? PlayerController(this) : NpcController(this);
     racer.controller = controller;
-    racer.setPositionAndRotation(startPos.x, startPos.y, this.course.startAngle);
+    racer.setPositionAndRotation(startPos.x, startPos.y, this.race.course.startAngle);
+  }
+
+  setMode(RacerMode m) {
+    mode = m;
+  }
+
+  @override bool destroy() {
+    return done;
   }
 
   @override
   void update(double dt) {
     if (!loaded()) return;
 
-    updateTracking(dt);
-    controller.update(dt);
+    if (mode == RacerMode.RACING) {
+      updateTracking(dt);
+      controller.update(dt);
+      if (courseProgress > race.distance) {
+        mode = RacerMode.FINISHED;
+        finishTime = race.elapsedTime;
+      }
+    }
+
     racer.update(dt);
 
     x = racer.pxPosition.x;
@@ -70,6 +95,7 @@ class RacerCmp extends PositionComponent {
     if (doublePoleAnimation != null) {
       doublePoleAnimation.update(dt);
     }
+
   }
 
   @override
@@ -105,7 +131,7 @@ class RacerCmp extends PositionComponent {
     final prev2Pos = racer.body.position - segmentStart;
     segmentProgress =  (prev2Pos.dot(segment) / segment.dot(segment));
 
-    if (segmentProgress.abs() > .95) {
+    if (segmentProgress > 0 && segmentProgress > .99) {
       targetSegment++;
       completedSegmentProgress += segment.length;
       if (targetSegment == breadCrumbs.length) {
@@ -113,7 +139,9 @@ class RacerCmp extends PositionComponent {
       }
     }
   }
-  double get courseProgress => completedSegmentProgress + segmentProgress * segment.length;
+  double get courseProgress => completedSegmentProgress + max(0,min(segmentProgress,1)) * segment.length;
+
+
 
 }
 
